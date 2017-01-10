@@ -9,12 +9,12 @@ using Newtonsoft.Json.Linq;
 using System.Threading;
 
 
-public class BodySourcePlayer : MonoBehaviour 
+public class BodySourceDBPlayer : MonoBehaviour 
 {
     private int _FrameCount = 0;
     public System.IO.FileStream _File;  
     private EmitBody[] _EData = null;
-    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "/SerializedData/SerializationDummy.json";  
+    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationDummy.json";  
     public EmitBody[] _eBodies  { get; set; }
     public EmitBody[] EGetData()  
     { 
@@ -29,7 +29,7 @@ public class BodySourcePlayer : MonoBehaviour
 
         if (_eBodies == null)
         {
-            string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "/SerializedData/SerializationOverview24721533.json");
+            string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview24721533.json");
             JArray[] fetchedData = JsonConvert.DeserializeObject<JArray[]>(json);
 
             foreach (var data in fetchedData.Select((v, i) => new { v, i })) 

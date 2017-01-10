@@ -13,9 +13,7 @@ public class BodySourcePlayerView : MonoBehaviour
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourcePlayer _BodyManager;
-
-    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationConfirm.json";
-
+    
     public int RotationCoef = 0;
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
     private Vector3 groundPosition;
