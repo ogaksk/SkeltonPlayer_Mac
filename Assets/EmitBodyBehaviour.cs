@@ -72,3 +72,11 @@ public class JsonFrame
     public uint timestamp { get; set; }
     public string bodies { get; set; }
 }
+
+public class DBFrame 
+{
+    public ulong timestamp { get; set; }
+    public int camera { get; set; }
+    public string bodies { get; set; }
+}
+

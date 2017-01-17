@@ -8,6 +8,12 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.Threading;
 
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
+using MongoDB.Driver.GridFS;
+// using MongoDB.Driver.Linq;
+
 
 public class BodySourceDBPlayer : MonoBehaviour 
 {
@@ -21,7 +27,10 @@ public class BodySourceDBPlayer : MonoBehaviour
         return _EData;
     }
     public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
+    public List<DBFrame> _dbDatas = new List<DBFrame>();
 
+    private const string connectionString = "mongodb://localhost";
+    private const string MongoDatabase = "skeletondb";
 
 
     void Start () 
@@ -29,35 +38,56 @@ public class BodySourceDBPlayer : MonoBehaviour
 
         if (_eBodies == null)
         {
-            string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview24721533.json");
-            JArray[] fetchedData = JsonConvert.DeserializeObject<JArray[]>(json);
+            var server = MongoServer.Create("mongodb://localhost");
+            var db = server.GetDatabase( "skeletondb" );
+            var collection = db.GetCollection( "skeleton" );
+            var res = collection.Find(Query.EQ("camera", 1));
 
-            foreach (var data in fetchedData.Select((v, i) => new { v, i })) 
+
+            foreach (var item in res)
             {
-                JsonFrame jsf = new JsonFrame();
-                jsf.timestamp = (uint)data.v[0];
-                jsf.bodies =  Newtonsoft.Json.JsonConvert.SerializeObject(data.v[1]);
-                _jsonDatas.Insert(data.i, jsf);
+                // values.Add(item);
+                DBFrame dbf = new DBFrame();
+                dbf.timestamp =  System.Convert.ToUInt64(item["timestamp"]);
+                dbf.camera = (int)item["camera"];
+                // dbf.bodies =   item["data"];
+                dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
+                _dbDatas.Add(dbf);
+                //MongoDB.Bson.Serialization.BsonSerializer.Serialize<string>(item["data"]);
+   
+
+                // Debug.Log(item);
             }
+
+            // JArray[] fetchedData = JsonConvert.DeserializeObject<JArray[]>(json);
+
+            // foreach (var data in fetchedData.Select((v, i) => new { v, i })) 
+            // {
+            //     JsonFrame jsf = new JsonFrame();
+            //     jsf.timestamp = (uint)data.v[0];
+            //     jsf.bodies =  Newtonsoft.Json.JsonConvert.SerializeObject(data.v[1]);
+            //     _jsonDatas.Insert(data.i, jsf);
+            // }
         }   
     }
     
     void Update () 
     {
 
-        if (_jsonDatas != null)
+        if (_dbDatas != null)
         {
-            if (_FrameCount < _jsonDatas.Count)
+            if (_FrameCount < _dbDatas.Count)
             {
-                _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_jsonDatas[_FrameCount].bodies);
+                _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[_FrameCount].bodies);
+                Debug.Log(_eBodies[0].IsTracked);
                 _EData = _eBodies;
 
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                
-                uint _time = 0;
+                ulong _time = 0;
                 _time = _FrameCount != 0 ? 
-                _jsonDatas[_FrameCount].timestamp - _jsonDatas[_FrameCount - 1].timestamp :
-                _jsonDatas[_FrameCount].timestamp - _jsonDatas[0].timestamp;
+                _dbDatas[_FrameCount].timestamp - _dbDatas[_FrameCount - 1].timestamp :
+                _dbDatas[_FrameCount].timestamp - _dbDatas[0].timestamp;
                 System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
                 _FrameCount += 1;
             }    
