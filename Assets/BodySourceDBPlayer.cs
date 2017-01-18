@@ -32,6 +32,8 @@ public class BodySourceDBPlayer : MonoBehaviour
     private const string connectionString = "mongodb://localhost";
     private const string MongoDatabase = "skeletondb";
 
+    public int cameraNumber = 1;
+
 
     void Start () 
     {
@@ -41,7 +43,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             var collection = db.GetCollection( "skeleton" );
-            var res = collection.Find(Query.EQ("camera", 1));
+            var res = collection.Find(Query.EQ("camera", cameraNumber));
 
 
             foreach (var item in res)
@@ -79,7 +81,6 @@ public class BodySourceDBPlayer : MonoBehaviour
             if (_FrameCount < _dbDatas.Count)
             {
                 _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[_FrameCount].bodies);
-                Debug.Log(_eBodies[0].IsTracked);
                 _EData = _eBodies;
 
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
