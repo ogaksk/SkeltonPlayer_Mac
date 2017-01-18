@@ -40,10 +40,13 @@ public class BodySourceDBPlayer : MonoBehaviour
 
         if (_eBodies == null)
         {
+            /*
+            // usage:  collection.Find(query).SetSkip(0).SetLimit(1).Size();
+            */
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             var collection = db.GetCollection( "skeleton" );
-            var res = collection.Find(Query.EQ("camera", cameraNumber));
+            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(5);
 
 
             foreach (var item in res)
