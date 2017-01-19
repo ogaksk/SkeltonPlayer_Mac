@@ -8,3 +8,5 @@ kinectのスケルトンデータをmacで再生するプロトタイプ
 
 6人分だとこれを6倍
 最大810M
+
+mongoimport --db skeletondb --collection skeleton --type json  --file  hogehogehoge.json 
