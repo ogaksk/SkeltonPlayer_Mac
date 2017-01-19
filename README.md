@@ -1,0 +1,4 @@
+# SkeltonPlayer_Mac
+kinectのスケルトンデータをmacで再生するプロトタイプ
+
+1秒で146kb
