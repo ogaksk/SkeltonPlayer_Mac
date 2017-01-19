@@ -75,7 +75,7 @@ public class JsonFrame
 
 public class DBFrame 
 {
-    public ulong timestamp { get; set; }
+    public long timestamp { get; set; }
     public int camera { get; set; }
     public string bodies { get; set; }
 }

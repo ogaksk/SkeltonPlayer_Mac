@@ -20,7 +20,6 @@ public class BodySourceDBPlayer : MonoBehaviour
     private int _FrameCount = 0;
     public System.IO.FileStream _File;  
     private EmitBody[] _EData = null;
-    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationDummy.json";  
     public EmitBody[] _eBodies  { get; set; }
     public EmitBody[] EGetData()  
     { 
@@ -46,33 +45,19 @@ public class BodySourceDBPlayer : MonoBehaviour
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             var collection = db.GetCollection( "skeleton" );
-            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(5);
+            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(30);
 
 
             foreach (var item in res)
             {
                 // values.Add(item);
-                DBFrame dbf = new DBFrame();
-                dbf.timestamp =  System.Convert.ToUInt64(item["timestamp"]);
+                DBFrame dbf = new DBFrame();  
+                dbf.timestamp =  System.Convert.ToInt64(item["timestamp"]);
                 dbf.camera = (int)item["camera"];
-                // dbf.bodies =   item["data"];
                 dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
                 _dbDatas.Add(dbf);
-                //MongoDB.Bson.Serialization.BsonSerializer.Serialize<string>(item["data"]);
-   
-
-                // Debug.Log(item);
             }
 
-            // JArray[] fetchedData = JsonConvert.DeserializeObject<JArray[]>(json);
-
-            // foreach (var data in fetchedData.Select((v, i) => new { v, i })) 
-            // {
-            //     JsonFrame jsf = new JsonFrame();
-            //     jsf.timestamp = (uint)data.v[0];
-            //     jsf.bodies =  Newtonsoft.Json.JsonConvert.SerializeObject(data.v[1]);
-            //     _jsonDatas.Insert(data.i, jsf);
-            // }
         }   
     }
     
@@ -88,7 +73,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                
-                ulong _time = 0;
+                long _time = 0;
                 _time = _FrameCount != 0 ? 
                 _dbDatas[_FrameCount].timestamp - _dbDatas[_FrameCount - 1].timestamp :
                 _dbDatas[_FrameCount].timestamp - _dbDatas[0].timestamp;
