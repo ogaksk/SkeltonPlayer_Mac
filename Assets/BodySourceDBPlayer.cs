@@ -51,7 +51,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             var collection = db.GetCollection( "skeleton" );
-            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(30);
+            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(100);
 
 
             foreach (var item in res)
