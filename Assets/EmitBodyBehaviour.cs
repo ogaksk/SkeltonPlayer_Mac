@@ -67,6 +67,14 @@ public struct EPosition
     public float Z { get; set; }
 }
 
+public struct FloorClipPlane
+{
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Z { get; set; }
+    public float W { get; set; }
+}
+
 public class JsonFrame 
 {
     public uint timestamp { get; set; }
@@ -78,5 +86,6 @@ public class DBFrame
     public long timestamp { get; set; }
     public int camera { get; set; }
     public string bodies { get; set; }
+    public FloorClipPlane floorClipPlane { get; set; }
 }
 

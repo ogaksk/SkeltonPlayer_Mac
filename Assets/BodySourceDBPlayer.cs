@@ -21,10 +21,16 @@ public class BodySourceDBPlayer : MonoBehaviour
     public System.IO.FileStream _File;  
     private EmitBody[] _EData = null;
     public EmitBody[] _eBodies  { get; set; }
+    public FloorClipPlane _FloorPlane;
     public EmitBody[] EGetData()  
     { 
         return _EData;
     }
+    public FloorClipPlane EGetFloorPlane()  
+    { 
+        return _FloorPlane;
+    }
+
     public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
     public List<DBFrame> _dbDatas = new List<DBFrame>();
 
@@ -54,6 +60,9 @@ public class BodySourceDBPlayer : MonoBehaviour
                 DBFrame dbf = new DBFrame();  
                 dbf.timestamp =  System.Convert.ToInt64(item["timestamp"]);
                 dbf.camera = (int)item["camera"];
+                dbf.floorClipPlane = JsonConvert.DeserializeObject<FloorClipPlane>(
+                    MongoDB.Bson.BsonExtensionMethods.ToJson(item["floorclipplane"])
+                );
                 dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
                 _dbDatas.Add(dbf);
             }
@@ -70,6 +79,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             {
                 _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[_FrameCount].bodies);
                 _EData = _eBodies;
+                _FloorPlane = _dbDatas[_FrameCount].floorClipPlane;
 
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                

@@ -17,6 +17,8 @@ public class BodySourceDBPlayerView : MonoBehaviour
     public int RotationCoef = 0;
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
     private Vector3 groundPosition;
+
+    private FloorClipPlane _floorData;
     
     private Dictionary<EJointType, EJointType> _BoneMap = new Dictionary<EJointType, EJointType>()
     {
@@ -63,6 +65,8 @@ public class BodySourceDBPlayerView : MonoBehaviour
         }
         
         EmitBody[] data = _BodyManager.EGetData();
+        _floorData = _BodyManager.EGetFloorPlane();
+
         if (data == null)
         {
             return;
@@ -136,6 +140,10 @@ public class BodySourceDBPlayerView : MonoBehaviour
     
     private void RefreshBodyObject(EmitBody body, GameObject bodyObject)
     {
+
+        var jointhead = body.Joints[EJointType.Head];
+        Vector3 _floor = GetFloorClipPlane(jointhead, _floorData);
+
         for (EJointType jt = EJointType.SpineBase; jt <= EJointType.ThumbRight; jt++)
         {
             EJoint sourceJoint = body.Joints[jt];
@@ -147,16 +155,16 @@ public class BodySourceDBPlayerView : MonoBehaviour
             }
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition) + _floor;
             jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-
+                // setPositionでrotation を設定するっぽい
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
-                lr.SetPosition(1, endpoint);
+                lr.SetPosition(1, endpoint + _floor);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
@@ -194,4 +202,17 @@ public class BodySourceDBPlayerView : MonoBehaviour
     {
      return angle * ( point - pivot) + pivot;
     }
+
+
+
+    private static Vector3 GetFloorClipPlane (EJoint jointhead, FloorClipPlane _floor) 
+    {
+        return new Vector3(
+            (float)jointhead.Position.X * 10,
+            (float)-(_floor.X * jointhead.Position.X + _floor.Z * jointhead.Position.Z + _floor.W) / _floor.Y * 10,
+            (float)jointhead.Position.Z * 10
+        );
+    }
+
+
 }
