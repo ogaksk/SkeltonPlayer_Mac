@@ -10,6 +10,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
 {
     public Material BoneMaterial;
     public GameObject BodySourceDBPlayer;
+    public double _cameraAngle;
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourceDBPlayer _BodyManager;
@@ -143,8 +144,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
 
         var jointhead = body.Joints[EJointType.Head];
         Vector3 _floor = GetFloorClipPlane(jointhead, _floorData);
-        double cameraAngle = getCameraAngle(_floorData);
-        Debug.Log(cameraAngle);
+        _cameraAngle = getCameraAngle(_floorData);
         // var comp = Quaternion.FromToRotation( 
         //     new Vector3( _floorData.X, _floorData.Y, _floorData.Z ), Vector3.up );
         // Debug.Log(Quaternion.Inverse( comp ).eulerAngles);
@@ -229,6 +229,12 @@ public class BodySourceDBPlayerView : MonoBehaviour
     private static double getCameraAngle (FloorClipPlane _floor) {
         double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
         return System.Math.Cos(cameraAngleRadians); 
+    }
+
+    void OnGUI () 
+    {
+        // テキストフィールドを表示する
+        GUI.TextField(new Rect(10, 10, 300, 50), _cameraAngle.ToString());
     }
 
 
