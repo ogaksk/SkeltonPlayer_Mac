@@ -160,7 +160,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
             }
 
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition)+ _floor;
             jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
             jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * -1);
             // jointObj.localPosition = Quaternion.Inverse(comp)  * jointObj.localPosition;
@@ -175,9 +175,8 @@ public class BodySourceDBPlayerView : MonoBehaviour
             {
                 lr.SetPosition(0, jointObj.localPosition);
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
-                
-                Vector3 endpoint2 = RotateAroundPoint(endpoint, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
-                lr.SetPosition(1, endpoint2 );
+                Vector3 endpoint2 = RotateAroundPoint(endpoint + _floor, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
+                lr.SetPosition(1, endpoint2);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
