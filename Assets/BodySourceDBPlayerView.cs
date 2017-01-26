@@ -17,6 +17,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
     
     public int RotationCoef = 0;
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
+    private Vector3 CameraPivot = new Vector3(1, 0, 0);
     private Vector3 groundPosition;
 
     private FloorClipPlane _floorData;
@@ -66,7 +67,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
         }
         
         EmitBody[] data = _BodyManager.EGetData();
-        _floorData = _BodyManager.EGetFloorPlane();
+        _floorData = _BodyManager.FloorClipPlane;
 
         if (data == null)
         {
@@ -144,7 +145,6 @@ public class BodySourceDBPlayerView : MonoBehaviour
 
         var jointhead = body.Joints[EJointType.Head];
         Vector3 _floor = GetFloorClipPlane(jointhead, _floorData);
-        _cameraAngle = getCameraAngle(_floorData);
         // var comp = Quaternion.FromToRotation( 
         //     new Vector3( _floorData.X, _floorData.Y, _floorData.Z ), Vector3.up );
         // Debug.Log(Quaternion.Inverse( comp ).eulerAngles);
@@ -158,10 +158,11 @@ public class BodySourceDBPlayerView : MonoBehaviour
             {
                 targetJoint = body.Joints[_BoneMap[jt]];
             }
-            
+
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition)+ _floor;
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
             jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
+            jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * -1);
             // jointObj.localPosition = Quaternion.Inverse(comp)  * jointObj.localPosition;
 
             // 足の位置を調べる
@@ -173,9 +174,10 @@ public class BodySourceDBPlayerView : MonoBehaviour
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-                // setPositionでrotation を設定するっぽい
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
-                lr.SetPosition(1, endpoint  + _floor );
+                
+                Vector3 endpoint2 = RotateAroundPoint(endpoint, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
+                lr.SetPosition(1, endpoint2 );
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
@@ -226,10 +228,6 @@ public class BodySourceDBPlayerView : MonoBehaviour
         );
     }
 
-    private static double getCameraAngle (FloorClipPlane _floor) {
-        double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
-        return System.Math.Cos(cameraAngleRadians); 
-    }
 
     void OnGUI () 
     {

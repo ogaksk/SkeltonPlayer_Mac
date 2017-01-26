@@ -26,9 +26,17 @@ public class BodySourceDBPlayer : MonoBehaviour
     { 
         return _EData;
     }
-    public FloorClipPlane EGetFloorPlane()  
-    { 
-        return _FloorPlane;
+
+    public FloorClipPlane FloorClipPlane
+    {
+        get;
+        set;
+    }
+
+    public float CameraAngle
+    {
+        get;
+        set;
     }
 
     public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
@@ -51,7 +59,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             var collection = db.GetCollection( "skeleton" );
-            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(100);
+            var res = collection.Find(Query.EQ("camera", cameraNumber)).SetLimit(10);
 
 
             foreach (var item in res)
@@ -79,7 +87,8 @@ public class BodySourceDBPlayer : MonoBehaviour
             {
                 _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[_FrameCount].bodies);
                 _EData = _eBodies;
-                _FloorPlane = _dbDatas[_FrameCount].floorClipPlane;
+                FloorClipPlane = _dbDatas[_FrameCount].floorClipPlane;
+                CameraAngle = getCameraAngle(FloorClipPlane);
 
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                
@@ -105,6 +114,13 @@ public class BodySourceDBPlayer : MonoBehaviour
             _File.Close();
         }
         
+    }
+
+    private static float getCameraAngle (FloorClipPlane _floor) 
+    {
+        double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
+        // return System.Math.Cos(cameraAngleRadians); 
+         return (float)(cameraAngleRadians * 180 / System.Math.PI);
     }
     
 }
