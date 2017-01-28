@@ -157,7 +157,7 @@ public class BodySourceDBPlayer : MonoBehaviour
         }
         if (counter % (period / 2) == 0 && counter % period != 0) 
         {
-            FetchDB(cameraNum, 100, 100);
+            FetchDB(cameraNum, counter + (period / 2), period);
             return;
         }
 
