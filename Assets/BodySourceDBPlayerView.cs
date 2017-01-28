@@ -227,12 +227,4 @@ public class BodySourceDBPlayerView : MonoBehaviour
         );
     }
 
-
-    void OnGUI () 
-    {
-        // テキストフィールドを表示する
-        GUI.TextField(new Rect(10, 10, 300, 50), _cameraAngle.ToString());
-    }
-
-
 }
