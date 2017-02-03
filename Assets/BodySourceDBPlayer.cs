@@ -42,6 +42,8 @@ public class BodySourceDBPlayer : MonoBehaviour
     public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
     public List<DBFrame> _dbDatas;
     public List<DBFrame> _buffer;
+
+    public string DataId;
     private Thread _backthread;
 
     private const string connectionString = "mongodb://localhost";
@@ -63,7 +65,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var server = MongoServer.Create("mongodb://localhost");
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
-            _maxFrameSize = _dbcollection.Find(Query.EQ("camera", cameraNumber)).Size();
+            _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
             QueingDB(cameraNumber, _FrameCount, _fetchesPitch);
             System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(2000));
         }   
@@ -126,7 +128,7 @@ public class BodySourceDBPlayer : MonoBehaviour
     {
         _buffer = new List<DBFrame>();
         _backthread = new Thread(() => {
-            var res = _dbcollection.Find(Query.EQ("camera", cameraNum)).SetSkip(skip).SetLimit(limit);
+            var res = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId))).SetSkip(skip).SetLimit(limit);
 
             foreach (var item in res)
             {
