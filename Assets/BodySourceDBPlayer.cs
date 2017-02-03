@@ -90,7 +90,7 @@ public class BodySourceDBPlayer : MonoBehaviour
                 _time = currentFrame != 0 ? 
                 _dbDatas[currentFrame].timestamp - _dbDatas[currentFrame - 1].timestamp :
                 _dbDatas[currentFrame].timestamp - _dbDatas[0].timestamp;
-                System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
+                //System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
                 _FrameCount += 1;
             }    
             else 
