@@ -10,6 +10,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
 {
     public Material BoneMaterial;
     public GameObject BodySourceDBPlayer;
+    public GameObject centerLine;
     public double _cameraAngle;
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
@@ -53,9 +54,19 @@ public class BodySourceDBPlayerView : MonoBehaviour
         { EJointType.SpineShoulder, EJointType.Neck },
         { EJointType.Neck, EJointType.Head },
     };
+
+    void Start ()
+    {
+        centerLine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+    }
     
     void Update () 
     {
+
+        centerLine.transform.position = groundPosition;
+        centerLine.transform.localScale=  new Vector3(1, 1, 10);
+        centerLine.transform.RotateAround(groundPosition, transform.up, RotationCoef);
+
         if (BodySourceDBPlayer == null)
         {
             return;
@@ -161,7 +172,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
 
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition)+ _floor;
-            jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
+            jointObj.RotateAround(groundPosition, transform.up, RotationCoef);
             jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * -1);
             // jointObj.localPosition = Quaternion.Inverse(comp)  * jointObj.localPosition;
 

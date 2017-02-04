@@ -185,7 +185,8 @@ public class BodySourceDBPlayer : MonoBehaviour
     void OnGUI () 
     {
         // テキストフィールドを表示する
-        GUI.TextField(new Rect(10, 10, 300, 20), _FrameCount.ToString());
+        //GUI.TextField(new Rect(10, 10, 300, 20), _FrameCount.ToString());
+        GUI.TextField(new Rect(10, 10, 300, 20), CameraAngle.ToString() );
     }
     
 }
