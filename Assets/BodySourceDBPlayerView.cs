@@ -185,7 +185,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-                Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
+                Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), groundPosition, Quaternion.Euler(0, RotationCoef, 0));
                 Vector3 endpoint2 = RotateAroundPoint(endpoint + _floor, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
                 lr.SetPosition(1, endpoint2);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
