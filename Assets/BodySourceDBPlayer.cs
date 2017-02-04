@@ -54,6 +54,8 @@ public class BodySourceDBPlayer : MonoBehaviour
     private MongoDB.Driver.MongoCollection<MongoDB.Bson.BsonDocument> _dbcollection;
     private int _fetchesPitch = 100;
 
+    private List<long> FrameTimeList;
+
 
     void Start () 
     {
@@ -79,18 +81,23 @@ public class BodySourceDBPlayer : MonoBehaviour
             if (_FrameCount < _maxFrameSize)
             {
                 var currentFrame = _FrameCount % _fetchesPitch;
-                
-                _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[currentFrame].bodies);
-                _EData = _eBodies;
-                FloorClipPlane = _dbDatas[currentFrame].floorClipPlane;
-                CameraAngle = getCameraAngle(FloorClipPlane);
-               
                
                 long _time = 0;
                 _time = currentFrame != 0 ? 
                 _dbDatas[currentFrame].timestamp - _dbDatas[currentFrame - 1].timestamp :
                 _dbDatas[currentFrame].timestamp - _dbDatas[0].timestamp;
+
+                Debug.Log("time: " + _time + "currentFrame: " + currentFrame);
                 //System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
+                
+                if ( FrameTimeList.Exists (x => x.Equals (currentFrame)) != null )
+                {
+                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[currentFrame].bodies);
+                    _EData = _eBodies;
+                    FloorClipPlane = _dbDatas[currentFrame].floorClipPlane;
+                    CameraAngle = getCameraAngle(FloorClipPlane);
+                }
+
                 _FrameCount += 1;
             }    
             else 
@@ -179,6 +186,16 @@ public class BodySourceDBPlayer : MonoBehaviour
             return;
         }
 
+    }
+
+    private void refreshTimeList (List<DBFrame> _buffer)
+    {
+
+        FrameTimeList = new List<long>();
+        _buffer.ForEach((val) => {
+            long a = val.timestamp;
+            FrameTimeList.Add(val.timestamp);
+        });
     }
 
 
