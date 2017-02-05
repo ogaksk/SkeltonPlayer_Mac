@@ -17,7 +17,7 @@ using MongoDB.Driver.GridFS;
 
 public class BodySourceDBPlayer : MonoBehaviour 
 {
-    private int _FrameCount = 0;
+    // private int _FrameCount = 0;
     public System.IO.FileStream _File;  
     private EmitBody[] _EData = null;
     public EmitBody[] _eBodies  { get; set; }
@@ -55,7 +55,7 @@ public class BodySourceDBPlayer : MonoBehaviour
     private int _fetchesPitch = 100;
 
     private List<long> FrameTimeList;
-
+    
 
     void Start () 
     {
@@ -68,7 +68,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
             _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
-            QueingDB(cameraNumber, _FrameCount, _fetchesPitch);
+            QueingDB(cameraNumber, 0, _fetchesPitch);
             System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(2000));
         }   
     }
@@ -78,6 +78,8 @@ public class BodySourceDBPlayer : MonoBehaviour
 
         if (_dbDatas != null)
         {
+            var _FrameCount = Clock.Counter;
+
             if (_FrameCount < _maxFrameSize)
             {
                 var currentFrame = _FrameCount % _fetchesPitch;
@@ -87,22 +89,22 @@ public class BodySourceDBPlayer : MonoBehaviour
                 _dbDatas[currentFrame].timestamp - _dbDatas[currentFrame - 1].timestamp :
                 _dbDatas[currentFrame].timestamp - _dbDatas[0].timestamp;
 
-                Debug.Log("time: " + _time + "currentFrame: " + currentFrame);
                 //System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
                 
                 if ( FrameTimeList.Exists (x => x.Equals (currentFrame)) != null )
                 {
+
                     _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[currentFrame].bodies);
                     _EData = _eBodies;
                     FloorClipPlane = _dbDatas[currentFrame].floorClipPlane;
                     CameraAngle = getCameraAngle(FloorClipPlane);
                 }
 
-                _FrameCount += 1;
+                // _FrameCount += 1;
             }    
             else 
             {
-                _FrameCount = 0;
+//                _FrameCount = 0;
             }
 
             QueingDB(1, _FrameCount, _fetchesPitch);

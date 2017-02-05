@@ -12,6 +12,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
     public GameObject BodySourceDBPlayer;
     public GameObject centerLine;
     public double _cameraAngle;
+    public Color bornColor;
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourceDBPlayer _BodyManager;
@@ -63,9 +64,9 @@ public class BodySourceDBPlayerView : MonoBehaviour
     void Update () 
     {
 
-        centerLine.transform.position = groundPosition;
-        centerLine.transform.localScale=  new Vector3(1, 1, 10);
-        centerLine.transform.RotateAround(groundPosition, transform.up, RotationCoef);
+        // centerLine.transform.position = groundPosition;
+        // centerLine.transform.localScale=  new Vector3(1, 1, 10);
+        // centerLine.transform.RotateAround(groundPosition, transform.up, RotationCoef);
 
         if (BodySourceDBPlayer == null)
         {
@@ -188,7 +189,8 @@ public class BodySourceDBPlayerView : MonoBehaviour
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), groundPosition, Quaternion.Euler(0, RotationCoef, 0));
                 Vector3 endpoint2 = RotateAroundPoint(endpoint + _floor, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
                 lr.SetPosition(1, endpoint2);
-                lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
+                // lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
+                lr.SetColors(bornColor, bornColor);
             }
             else
             {
