@@ -55,6 +55,7 @@ public class BodySourceDBPlayer : MonoBehaviour
     private int _fetchesPitch = 100;
 
     private List<long> FrameTimeList;
+    private int progressTIme = 0;
     
 
     void Start () 
@@ -75,11 +76,10 @@ public class BodySourceDBPlayer : MonoBehaviour
     
     void Update () 
     {
-
+        
         if (_dbDatas != null)
         {
             var _FrameCount = Clock.Counter;
-
             if (_FrameCount < _maxFrameSize)
             {
                 var currentFrame = _FrameCount % _fetchesPitch;
@@ -90,10 +90,11 @@ public class BodySourceDBPlayer : MonoBehaviour
                 _dbDatas[currentFrame].timestamp - _dbDatas[0].timestamp;
 
                 //System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
-                
-                if ( FrameTimeList.Exists (x => x.Equals (currentFrame)) != null )
-                {
+                Debug.Log(progressTIme);
+                Debug.Log(FrameTimeList.Exists (x => System.Math.Abs(progressTIme - x) < 33 ) );
 
+                if (  FrameTimeList.Exists (x => System.Math.Abs(progressTIme - x) < 33 ) )
+                {
                     _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[currentFrame].bodies);
                     _EData = _eBodies;
                     FloorClipPlane = _dbDatas[currentFrame].floorClipPlane;
@@ -107,8 +108,8 @@ public class BodySourceDBPlayer : MonoBehaviour
 //                _FrameCount = 0;
             }
 
-            QueingDB(1, _FrameCount, _fetchesPitch);
-
+            QueingDB(cameraNumber, _FrameCount, _fetchesPitch);
+            progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
         
@@ -151,6 +152,7 @@ public class BodySourceDBPlayer : MonoBehaviour
                 dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
                 _buffer.Add(dbf);
             }
+        refreshTimeList();
         });
         _backthread.Start();
     }
@@ -190,9 +192,8 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     }
 
-    private void refreshTimeList (List<DBFrame> _buffer)
+    private void refreshTimeList ()
     {
-
         FrameTimeList = new List<long>();
         _buffer.ForEach((val) => {
             long a = val.timestamp;
