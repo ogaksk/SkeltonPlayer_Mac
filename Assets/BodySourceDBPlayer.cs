@@ -52,7 +52,8 @@ public class BodySourceDBPlayer : MonoBehaviour
     public int cameraNumber = 1;
     private int _maxFrameSize = 0;
     private MongoDB.Driver.MongoCollection<MongoDB.Bson.BsonDocument> _dbcollection;
-    private int _fetchesPitch = 100;
+    private int Turn = 0;
+    
 
     private List<long> FrameTimeList;
     private List<int> FrameList;
@@ -71,7 +72,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
             _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
-            QueingDB(cameraNumber, 0, _fetchesPitch);
+            QueingDB(0, 10000);
         }   
     }
     
@@ -83,8 +84,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var _FrameCount = Clock.Counter;
             if (_FrameCount < _maxFrameSize)
             {
-                var currentFrame = _FrameCount % _fetchesPitch;
-               
+                
                 // long _time = 0;
                 // _time = currentFrame != 0 ? 
                 // _dbDatas[currentFrame].timestamp - _dbDatas[currentFrame - 1].timestamp :
@@ -94,11 +94,14 @@ public class BodySourceDBPlayer : MonoBehaviour
                 // Debug.Log(progressTIme);
 
                 // var res =  FrameTimeList.FindIndex (x => System.Math.Abs(progressTIme - x) < 100 );
-                if ( FrameList.Exists (x => x == _FrameCount) )
+                var res =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
+                if ( res != -1 )
                 {
-                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[_FrameCount].bodies);
+                    // Debug.Log(res);
+                    // Debug.Log("what Frame=?" + _FrameCount + " timestamp=?" + _dbDatas[res].timestamp);
+                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[res].bodies);  
                     _EData = _eBodies;
-                    FloorClipPlane = _dbDatas[currentFrame].floorClipPlane;
+                    FloorClipPlane = _dbDatas[res].floorClipPlane;
                     CameraAngle = getCameraAngle(FloorClipPlane);
                 }
 
@@ -109,8 +112,8 @@ public class BodySourceDBPlayer : MonoBehaviour
 //                _FrameCount = 0;
             }
 
-            QueingDB(cameraNumber, _FrameCount, _fetchesPitch);
-            progressTIme += (int)(Time.deltaTime * 1000);
+            QueingDB(_FrameCount, 10000);
+            // progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
         
@@ -135,7 +138,7 @@ public class BodySourceDBPlayer : MonoBehaviour
          return (float)(cameraAngleRadians * 180 / System.Math.PI);
     }
 
-    private void FetchDB(int cameraNum, int skip, int limit) 
+    private void FetchDB(int timeLength) 
     {
         _buffer = new List<DBFrame>();
         _backthread = new Thread(() => {
@@ -144,8 +147,8 @@ public class BodySourceDBPlayer : MonoBehaviour
             var query = Query.And(
                 Query.EQ("camera", cameraNumber), 
                 Query.EQ("id", DataId), 
-                Query.GTE( "timestamp", 0 ),
-                Query.LTE( "timestamp", 10000 )
+                Query.GTE( "timestamp", Turn * timeLength),
+                Query.LTE( "timestamp", (Turn + 1) * timeLength )
                 );
 
             var res = _dbcollection.Find(query);
@@ -170,26 +173,27 @@ public class BodySourceDBPlayer : MonoBehaviour
         _backthread.Start();
     }
 
-    private void QueingDB(int cameraNum, int counter, int period)
+    private void QueingDB(int counter, int timeLength)
     {
-
         if (counter == 0) 
         {
             _dbDatas = new List<DBFrame>();
-            Debug.Log("start");
-            FetchDB(cameraNum, 0, period);
+            FetchDB(timeLength);
             System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(1000));
             _dbDatas = _buffer;
             convertTimeToFrame();
-            return;
-        }
-        if (counter % (period / 2) == 0 && counter % period != 0) 
-        {
-            FetchDB(cameraNum, counter + (period / 2), period);
+            Turn += 1;
             return;
         }
 
-        if (counter % period != 0)
+        if (counter % (FrameList[FrameList.Count-1] / 2) == 0 && counter % FrameList.Count != 0) 
+        {
+            FetchDB(timeLength);
+            return;
+        }
+
+
+        if (counter % FrameList[FrameList.Count-1] != 0)
         {
             return;
         } else {
@@ -197,6 +201,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             Debug.Log("set");
             _dbDatas = _buffer;
             convertTimeToFrame();
+            Turn += 1;
             if (_backthread != null)
             {
                 Debug.Log("thead delete");
