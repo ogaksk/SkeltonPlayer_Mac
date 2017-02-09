@@ -57,7 +57,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     private List<long> FrameTimeList;
     private List<int> FrameList;
-    private int progressTIme = 0;
+    private int currentFirstFrame = 0;
     
 
     void Start () 
@@ -175,8 +175,10 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     private void QueingDB(int counter, int timeLength)
     {
+        Debug.Log("jissai counter" + counter );
         if (counter == 0) 
         {
+            Debug.Log("que start" );
             _dbDatas = new List<DBFrame>();
             FetchDB(timeLength);
             System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(1000));
@@ -186,12 +188,18 @@ public class BodySourceDBPlayer : MonoBehaviour
             return;
         }
 
-        if (counter % (FrameList[FrameList.Count-1] / 2) == 0 && counter % FrameList.Count != 0) 
+        if (
+            counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame) == 0 
+            && counter % FrameList[FrameList.Count-1] != 0
+            ) 
         {
+            Debug.Log(".................................buffering................................." );
+            Debug.Log("last frame is" + FrameList[FrameList.Count-1]);
             FetchDB(timeLength);
             return;
         }
 
+        Debug.Log("kansi" + counter % FrameList[FrameList.Count-1]);
 
         if (counter % FrameList[FrameList.Count-1] != 0)
         {
@@ -215,7 +223,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     private void refreshTimeList ()
     {
-        Debug.Log("time list refresh start");
+        Debug.Log("----------------------------------time list refresh start----------------------------------");
         FrameTimeList = new List<long>();
         _buffer.ForEach((val) => {
             long a = val.timestamp;
@@ -246,6 +254,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             Debug.Log("frame is =="+frame+ "timelist==" +FrameTimeList[i]+ "count  :" + i);
             FrameList.Add(frame);
         }
+        currentFirstFrame = FrameList[0];
     }
 
     void OnGUI () 
