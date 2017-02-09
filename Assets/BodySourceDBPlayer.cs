@@ -45,6 +45,8 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     public string DataId;
     private Thread _backthread;
+    private Thread _backthread2;
+
 
     private const string connectionString = "mongodb://localhost";
     private const string MongoDatabase = "skeletondb";
@@ -76,7 +78,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
             _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
-            QueingDB(0, 10000);
+            QueingDB(0, 1000);
         }   
     }
     
@@ -110,7 +112,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 //                _FrameCount = 0;
             }
 
-            QueingDB(_FrameCount, 10000);
+            QueingDB(_FrameCount, 1000);
             // progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
@@ -173,7 +175,6 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     private void QueingDB(int counter, int timeLength)
     {
-        Debug.Log("jissai counter" + counter );
         if (counter == 0) 
         {
             Debug.Log("que start" );
@@ -196,8 +197,6 @@ public class BodySourceDBPlayer : MonoBehaviour
             FetchDB(timeLength);
             return;
         }
-
-        Debug.Log("kansi" +  FrameList[FrameList.Count-1]);
 
         if (counter % FrameList[FrameList.Count-1] != 0)
         {
@@ -256,7 +255,6 @@ public class BodySourceDBPlayer : MonoBehaviour
         {
             
             int frame = (int)System.Math.Round(FrameTimeList[i] / fps, System.MidpointRounding.AwayFromZero);
-            Debug.Log("frame is =="+frame+ "timelist==" +FrameTimeList[i]+ "count  :" + i);
             FrameList.Add(frame);
         }
         currentFirstFrame = FrameList[0];
