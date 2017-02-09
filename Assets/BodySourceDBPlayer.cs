@@ -217,13 +217,15 @@ public class BodySourceDBPlayer : MonoBehaviour
         }
 
         if (
-            counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame) == 0 
+            counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame +  (cameraNumber*20) ) == 0 
             && counter % FrameList[FrameList.Count-1] != 0
             ) 
         {
             Debug.Log("----------------------------------buffering.----------------------------------."+cameraNumber+"..----------------------------------" );
             Debug.Log("last frame is" + FrameList[FrameList.Count-1]);
             /* fetch db */
+
+
             System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
             return;
         }
