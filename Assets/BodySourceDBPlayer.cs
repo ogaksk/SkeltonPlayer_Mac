@@ -14,6 +14,12 @@ using MongoDB.Driver.Builders;
 using MongoDB.Driver.GridFS;
 // using MongoDB.Driver.Linq;
 
+class ThreadInfo
+{
+    public int threadIndex;
+    
+}
+
 
 public class BodySourceDBPlayer : MonoBehaviour 
 {
@@ -45,7 +51,10 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     public string DataId;
     private Thread _backthread;
-    private Thread _backthread2;
+    private int maxThreads = 10; // set your max threads here
+    static readonly object _countLock = new object();
+    static int _threadCount = 0;
+    static bool closingApp = false;
 
 
     private const string connectionString = "mongodb://localhost";
@@ -60,6 +69,7 @@ public class BodySourceDBPlayer : MonoBehaviour
     private List<long> FrameTimeList;
     private List<int> FrameList;
     private int currentFirstFrame = 0;
+    public int timeLength = 10000;
 
     public int ThisNowFrameIndex = 0;
     public int ThisNowFrame = 0;
@@ -78,7 +88,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
             _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
-            QueingDB(0, 10000);
+            QueingDB(0);
         }   
     }
     
@@ -112,7 +122,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 //                _FrameCount = 0;
             }
 
-            QueingDB(_FrameCount, 10000);
+            QueingDB(_FrameCount);
             // progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
@@ -131,6 +141,7 @@ public class BodySourceDBPlayer : MonoBehaviour
         
     }
 
+
     private static float getCameraAngle (FloorClipPlane _floor) 
     {
         double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
@@ -138,48 +149,66 @@ public class BodySourceDBPlayer : MonoBehaviour
          return (float)(cameraAngleRadians * 180 / System.Math.PI);
     }
 
-    private void FetchDB(int timeLength) 
+
+    private void FetchDB(System.Object state) 
     {
-        _buffer = new List<DBFrame>();
-        _backthread = new Thread(() => {
-            // var res = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId))).SetSkip(skip).SetLimit(limit);
-            
-            var query = Query.And(
-                Query.EQ("camera", cameraNumber), 
-                Query.EQ("id", DataId), 
-                Query.GTE( "timestamp", Turn * timeLength),
-                Query.LTE( "timestamp", (Turn + 1) * timeLength )
-                );
-
-            var res = _dbcollection.Find(query);
-
-            foreach (var item in res)
+        // Constrain the number of worker threads, loop here until less than maxthreads are running
+        while (!closingApp)
+        {
+            // Prevent other threads from changing this under us
+            lock (_countLock)
             {
-                // values.Add(item);
-                DBFrame dbf = new DBFrame();  
-                dbf.timestamp =  System.Convert.ToInt64(item["timestamp"]);
-                dbf.camera = (int)item["camera"];
-                dbf.floorClipPlane = JsonConvert.DeserializeObject<FloorClipPlane>(
-                    MongoDB.Bson.BsonExtensionMethods.ToJson(item["floorclipplane"])
-                );
-                dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
-                _buffer.Add(dbf);
+                if (_threadCount < maxThreads && !closingApp)
+                {
+                    // Start processing
+                    _threadCount++;
+                    break;
+                }
             }
+            Thread.Sleep(50);
+        }
 
-            refreshTimeList();
+         if (closingApp) return;
 
-        });
+        _buffer = new List<DBFrame>();
+        // var res = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId))).SetSkip(skip).SetLimit(limit);
+        var query = Query.And(
+            Query.EQ("camera", cameraNumber), 
+            Query.EQ("id", DataId), 
+            Query.GTE( "timestamp", Turn * timeLength),
+            Query.LTE( "timestamp", (Turn + 1) * timeLength )
+            );
 
-        _backthread.Start();
+        var res = _dbcollection.Find(query);
+
+        foreach (var item in res)
+        {
+            // values.Add(item);
+            DBFrame dbf = new DBFrame();  
+            dbf.timestamp =  System.Convert.ToInt64(item["timestamp"]);
+            dbf.camera = (int)item["camera"];
+            dbf.floorClipPlane = JsonConvert.DeserializeObject<FloorClipPlane>(
+                MongoDB.Bson.BsonExtensionMethods.ToJson(item["floorclipplane"])
+            );
+            dbf.bodies = MongoDB.Bson.BsonExtensionMethods.ToJson(item["data"]);
+            _buffer.Add(dbf);
+        }
+
+        refreshTimeList();
+        // decrease thread counter, so other threads can start
+        _threadCount--;
+
+        
     }
 
-    private void QueingDB(int counter, int timeLength)
+    private void QueingDB(int counter)
     {
         if (counter == 0) 
         {
             Debug.Log("que start" );
             _dbDatas = new List<DBFrame>();
-            FetchDB(timeLength);
+            /* fetch db */
+            System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
             System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(1000));
             _dbDatas = _buffer;
             convertTimeToFrame();
@@ -194,7 +223,8 @@ public class BodySourceDBPlayer : MonoBehaviour
         {
             Debug.Log("----------------------------------buffering.----------------------------------."+cameraNumber+"..----------------------------------" );
             Debug.Log("last frame is" + FrameList[FrameList.Count-1]);
-            FetchDB(timeLength);
+            /* fetch db */
+            System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
             return;
         }
 
@@ -267,6 +297,12 @@ public class BodySourceDBPlayer : MonoBehaviour
         //GUI.TextField(new Rect(10, 10, 300, 20), _FrameCount.ToString());
         GUI.TextField(new Rect( 40 *cameraNumber, 10, 40, 20), ThisNowTime.ToString() );
         GUI.TextField(new Rect( 40 *cameraNumber, 30, 40, 30), Clock.Counter.ToString() );
+    }
+
+
+    void OnDestroy()
+    {
+        closingApp = true;
     }
     
 }
