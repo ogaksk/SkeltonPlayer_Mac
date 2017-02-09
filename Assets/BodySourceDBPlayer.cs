@@ -58,6 +58,10 @@ public class BodySourceDBPlayer : MonoBehaviour
     private List<long> FrameTimeList;
     private List<int> FrameList;
     private int currentFirstFrame = 0;
+
+    public int ThisNowFrameIndex = 0;
+    public int ThisNowFrame = 0;
+    public int ThisNowTime = 0;
     
 
     void Start () 
@@ -84,24 +88,18 @@ public class BodySourceDBPlayer : MonoBehaviour
             var _FrameCount = Clock.Counter;
             if (_FrameCount < _maxFrameSize)
             {
-                
-                // long _time = 0;
-                // _time = currentFrame != 0 ? 
-                // _dbDatas[currentFrame].timestamp - _dbDatas[currentFrame - 1].timestamp :
-                // _dbDatas[currentFrame].timestamp - _dbDatas[0].timestamp;
-
-                //System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
-                // Debug.Log(progressTIme);
-
                 // var res =  FrameTimeList.FindIndex (x => System.Math.Abs(progressTIme - x) < 100 );
-                var res =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
-                if ( res != -1 )
+
+                ThisNowFrameIndex =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
+                ThisNowFrame =  ThisNowFrameIndex == -1 ? -1 : FrameList[ThisNowFrameIndex];
+                if ( ThisNowFrameIndex != -1 )
                 {
                     // Debug.Log(res);
                     // Debug.Log("what Frame=?" + _FrameCount + " timestamp=?" + _dbDatas[res].timestamp);
-                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[res].bodies);  
+                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[ThisNowFrameIndex].bodies);  
+                    ThisNowTime = (int)(_dbDatas[ThisNowFrameIndex].timestamp * 0.001f);
                     _EData = _eBodies;
-                    FloorClipPlane = _dbDatas[res].floorClipPlane;
+                    FloorClipPlane = _dbDatas[ThisNowFrameIndex].floorClipPlane;
                     CameraAngle = getCameraAngle(FloorClipPlane);
                 }
 
@@ -193,20 +191,20 @@ public class BodySourceDBPlayer : MonoBehaviour
             && counter % FrameList[FrameList.Count-1] != 0
             ) 
         {
-            Debug.Log(".................................buffering................................." );
+            Debug.Log("----------------------------------buffering.----------------------------------."+cameraNumber+"..----------------------------------" );
             Debug.Log("last frame is" + FrameList[FrameList.Count-1]);
             FetchDB(timeLength);
             return;
         }
 
-        Debug.Log("kansi" + counter % FrameList[FrameList.Count-1]);
+        Debug.Log("kansi" +  FrameList[FrameList.Count-1]);
 
         if (counter % FrameList[FrameList.Count-1] != 0)
         {
             return;
         } else {
             _dbDatas = new List<DBFrame>();
-            Debug.Log("set");
+            Debug.Log("!!!!!!!!!!!!!set!!!!!!!!!!!!!");
             _dbDatas = _buffer;
             convertTimeToFrame();
             Turn += 1;
@@ -223,7 +221,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 
     private void refreshTimeList ()
     {
-        Debug.Log("----------------------------------time list refresh start----------------------------------");
+        Debug.Log("----------------------------------time list refresh start----------"+cameraNumber+"------------------------");
         FrameTimeList = new List<long>();
         _buffer.ForEach((val) => {
             long a = val.timestamp;
@@ -235,33 +233,42 @@ public class BodySourceDBPlayer : MonoBehaviour
     {
         Debug.Log("convert start");
         FrameList = new List<int>();
-        int fps = 24;
-        int frame = 0;
+        float fps = 30f;
             
+        // for (int i = 0; i < FrameTimeList.Count; ++i) 
+        // {
+        //     var abs = 0f;
+
+        //     if (i == 0)
+        //     {
+        //         abs = FrameTimeList[0];
+        //     } 
+        //     else 
+        //     {
+        //         abs = FrameTimeList[i] - FrameTimeList[i-1];
+        //     }
+        //     frame += (int)System.Math.Round(abs / fps, System.MidpointRounding.AwayFromZero);
+        //     Debug.Log("frame is =="+frame+ "timelist==" +FrameTimeList[i]+ "count  :" + i);
+        //     FrameList.Add(frame);
+        // }
+        // currentFirstFrame = FrameList[0];
         for (int i = 0; i < FrameTimeList.Count; ++i) 
         {
-            var abs = 0f;
-
-            if (i == 0)
-            {
-                abs = FrameTimeList[0];
-            } 
-            else 
-            {
-                abs = FrameTimeList[i] - FrameTimeList[i-1];
-            }
-            frame += (int)System.Math.Round(abs / fps, System.MidpointRounding.AwayFromZero);
+            
+            int frame = (int)System.Math.Round(FrameTimeList[i] / fps, System.MidpointRounding.AwayFromZero);
             Debug.Log("frame is =="+frame+ "timelist==" +FrameTimeList[i]+ "count  :" + i);
             FrameList.Add(frame);
         }
         currentFirstFrame = FrameList[0];
+
     }
 
     void OnGUI () 
     {
         // テキストフィールドを表示する
         //GUI.TextField(new Rect(10, 10, 300, 20), _FrameCount.ToString());
-        GUI.TextField(new Rect(10, 10, 300, 20), Clock.Counter.ToString() );
+        GUI.TextField(new Rect( 40 *cameraNumber, 10, 40, 20), ThisNowTime.ToString() );
+        GUI.TextField(new Rect( 40 *cameraNumber, 30, 40, 30), Clock.Counter.ToString() );
     }
     
 }
