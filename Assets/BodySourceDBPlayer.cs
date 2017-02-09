@@ -78,7 +78,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             var db = server.GetDatabase( "skeletondb" );
             _dbcollection = db.GetCollection( "skeleton" );
             _maxFrameSize = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId)) ).Size();
-            QueingDB(0, 1000);
+            QueingDB(0, 10000);
         }   
     }
     
@@ -112,7 +112,7 @@ public class BodySourceDBPlayer : MonoBehaviour
 //                _FrameCount = 0;
             }
 
-            QueingDB(_FrameCount, 1000);
+            QueingDB(_FrameCount, 10000);
             // progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
@@ -166,7 +166,7 @@ public class BodySourceDBPlayer : MonoBehaviour
                 _buffer.Add(dbf);
             }
 
-        refreshTimeList();
+            refreshTimeList();
 
         });
 
