@@ -209,7 +209,7 @@ public class BodySourceDBPlayer : MonoBehaviour
             _dbDatas = new List<DBFrame>();
             /* fetch db */
             System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
-            System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(1000));
+            System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(2000));
             _dbDatas = _buffer;
             convertTimeToFrame();
             Turn += 1;

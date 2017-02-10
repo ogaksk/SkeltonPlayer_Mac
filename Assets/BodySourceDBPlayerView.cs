@@ -13,6 +13,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
     public GameObject centerLine;
     public double _cameraAngle;
     public Color bornColor;
+    public float miniCoef;
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourceDBPlayer _BodyManager;
@@ -174,7 +175,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition)+ _floor;
             jointObj.RotateAround(groundPosition, transform.up, RotationCoef);
-            jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * -1);
+            jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * miniCoef);
             // jointObj.localPosition = Quaternion.Inverse(comp)  * jointObj.localPosition;
 
             // 足の位置を調べる
@@ -187,7 +188,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
             {
                 lr.SetPosition(0, jointObj.localPosition);
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), groundPosition, Quaternion.Euler(0, RotationCoef, 0));
-                Vector3 endpoint2 = RotateAroundPoint(endpoint + _floor, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
+                Vector3 endpoint2 = RotateAroundPoint(endpoint + _floor, CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * miniCoef, 0, 0));
                 lr.SetPosition(1, endpoint2);
                 // lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
                 lr.SetColors(bornColor, bornColor);
