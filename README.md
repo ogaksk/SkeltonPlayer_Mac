@@ -14,8 +14,8 @@ kinectのスケルトンデータをmacで再生するプロトタイプ
  1.mongoインストール  
 
  ２.DB作成  
- `$ mongo skeletondb
- use skeletondb` 
+ `$ mongo skeletondb`
+`use skeletondb # mongoコンソールに打ち込む` 
 
  3.mongoで入ってcollection作成  
  `db.createCollection('skeleton');`
