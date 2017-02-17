@@ -32,3 +32,5 @@ sysinfo.txt
 *.apk
 *.unitypackage
 SerializationOverview24721533.json
+
+npm-debug.log

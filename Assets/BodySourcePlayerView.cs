@@ -15,8 +15,10 @@ public class BodySourcePlayerView : MonoBehaviour
     private BodySourcePlayer _BodyManager;
     
     public int RotationCoef = 0;
+    private int prevRotationCoef = 0;
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
     private Vector3 groundPosition;
+
     
     private Dictionary<EJointType, EJointType> _BoneMap = new Dictionary<EJointType, EJointType>()
     {
@@ -148,7 +150,14 @@ public class BodySourcePlayerView : MonoBehaviour
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
-            jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
+
+            if(prevRotationCoef != RotationCoef)
+            {
+                Debug.Log("hyouk");
+                prevRotationCoef = RotationCoef;
+                jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
+            } 
+            
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
             if(targetJoint.HasValue)

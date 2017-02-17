@@ -19,6 +19,8 @@ public class BodySourceDBPlayerView : MonoBehaviour
     private BodySourceDBPlayer _BodyManager;
     
     public int RotationCoef = 0;
+    private int prevRotationCoef = 0;
+
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
     private Vector3 CameraPivot = new Vector3(1, 0, 0);
     private Vector3 groundPosition;
@@ -138,7 +140,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
         
         for (EJointType jt = EJointType.SpineBase; jt <= EJointType.ThumbRight; jt++)
         {
-            GameObject jointObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject jointObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             
             LineRenderer lr = jointObj.AddComponent<LineRenderer>();
             lr.SetVertexCount(2);
@@ -174,8 +176,13 @@ public class BodySourceDBPlayerView : MonoBehaviour
 
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition)+ _floor;
+
+                
+            prevRotationCoef = RotationCoef;
             jointObj.RotateAround(groundPosition, transform.up, RotationCoef);
             jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * miniCoef);
+
+            
             // jointObj.localPosition = Quaternion.Inverse(comp)  * jointObj.localPosition;
 
             // 足の位置を調べる
