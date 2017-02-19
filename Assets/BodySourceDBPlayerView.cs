@@ -226,7 +226,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
     private static Vector3 GetVector3FromJoint(EJoint joint,  Vector3 groundPosition)
     {
         return new Vector3(
-            (joint.Position.X * 10) + groundPosition.x, 
+            (joint.Position.X * -10) + groundPosition.x, 
             (joint.Position.Y * 10) + groundPosition.y, 
             (joint.Position.Z * 10) + groundPosition.z
         );
