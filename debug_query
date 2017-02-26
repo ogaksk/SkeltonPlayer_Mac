@@ -1,0 +1,2 @@
+var query  = { "timestamp" : { "$gte" : 440000, "$lte" : 450000 }, "camera" : 1, "id" : "20170205173526" };
+db.skeleton.find(query).size

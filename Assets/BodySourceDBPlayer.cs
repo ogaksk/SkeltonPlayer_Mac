@@ -69,11 +69,13 @@ public class BodySourceDBPlayer : MonoBehaviour
     private List<long> FrameTimeList;
     private List<int> FrameList;
     private int currentFirstFrame = 0;
-    public int timeLength = 10000;
+    private int timeLength = 20000;
 
-    public int ThisNowFrameIndex = 0;
-    public int ThisNowFrame = 0;
-    public int ThisNowTime = 0;
+    private int ThisNowFrameIndex = 0;
+    private int ThisNowFrame = 0;
+    private int ThisNowTime = 0;
+
+    private bool debugButton = false;
     
 
     void Start () 
@@ -98,12 +100,12 @@ public class BodySourceDBPlayer : MonoBehaviour
         if (_dbDatas != null)
         {
             var _FrameCount = Clock.Counter;
-            if (_FrameCount < _maxFrameSize)
-            {
+            
                 // var res =  FrameTimeList.FindIndex (x => System.Math.Abs(progressTIme - x) < 100 );
-
+                // Debug.Log(_FrameCount + "==cameranum===" + cameraNumber);
+                // Debugger.List(FrameList);
                 ThisNowFrameIndex =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
-                ThisNowFrame =  ThisNowFrameIndex == -1 ? -1 : FrameList[ThisNowFrameIndex];
+                ThisNowFrame = ThisNowFrameIndex == -1 ? -1 : FrameList[ThisNowFrameIndex];
                 if ( ThisNowFrameIndex != -1 )
                 {
                     // Debug.Log(res);
@@ -116,15 +118,16 @@ public class BodySourceDBPlayer : MonoBehaviour
                 }
 
                 // _FrameCount += 1;
-            }    
-            else 
-            {
-//                _FrameCount = 0;
-            }
+            
 
             QueingDB(_FrameCount);
             // progressTIme += (int)(Time.deltaTime * 1000);
         }  
+
+        if (Input.GetKeyDown(KeyCode.Space)) 
+        {
+           debugButton = true;
+        }
 
         
         
@@ -205,7 +208,7 @@ public class BodySourceDBPlayer : MonoBehaviour
     {
         if (counter == 0) 
         {
-            Debug.Log("que start" );
+            Debug.Log("que start");
             _dbDatas = new List<DBFrame>();
             /* fetch db */
             System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
@@ -216,26 +219,34 @@ public class BodySourceDBPlayer : MonoBehaviour
             return;
         }
 
-        if (
-            counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame +  (cameraNumber*20) ) == 0 
-            && counter % FrameList[FrameList.Count-1] != 0
-            ) 
+        if (debugButton == true) 
+        {
+            var durrationTime = 400000;
+            Clock.Counter = TimeToFrame(durrationTime);
+            Turn =  TimeToTurn(durrationTime);
+            debugButton =  false;
+        }
+
+        // if (
+        //     counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame +  (cameraNumber*20) ) == 0 
+        //     && counter % FrameList[FrameList.Count-1] != 0
+        // ) 
+        if ( counter % ( NextRefleshFrame() + (cameraNumber*30) ) == 0 
+            && counter % NextSetFrame() != 0 ) 
         {
             Debug.Log("----------------------------------buffering.----------------------------------."+cameraNumber+"..----------------------------------" );
-            Debug.Log("last frame is" + FrameList[FrameList.Count-1]);
+
             /* fetch db */
-
-
             System.Threading.ThreadPool.QueueUserWorkItem(new WaitCallback(FetchDB));
             return;
         }
 
-        if (counter % FrameList[FrameList.Count-1] != 0)
+        if (counter % NextSetFrame() != 0)
         {
             return;
         } else {
             _dbDatas = new List<DBFrame>();
-            Debug.Log("!!!!!!!!!!!!!set!!!!!!!!!!!!!");
+            Debug.Log("!!!!!!!!!!!!!set!!!!!!!!!!!!-."+cameraNumber+"..-!");
             _dbDatas = _buffer;
             convertTimeToFrame();
             Turn += 1;
@@ -258,39 +269,46 @@ public class BodySourceDBPlayer : MonoBehaviour
             long a = val.timestamp;
             FrameTimeList.Add(val.timestamp);
         });
+        Debug.Log("last time is"+  FrameTimeList[FrameTimeList.Count - 1]);
     }
 
     private void convertTimeToFrame ()
     {
-        Debug.Log("convert start");
+        Debug.Log("convert start-."+cameraNumber+"..-");
         FrameList = new List<int>();
         float fps = 30f;
             
-        // for (int i = 0; i < FrameTimeList.Count; ++i) 
-        // {
-        //     var abs = 0f;
-
-        //     if (i == 0)
-        //     {
-        //         abs = FrameTimeList[0];
-        //     } 
-        //     else 
-        //     {
-        //         abs = FrameTimeList[i] - FrameTimeList[i-1];
-        //     }
-        //     frame += (int)System.Math.Round(abs / fps, System.MidpointRounding.AwayFromZero);
-        //     Debug.Log("frame is =="+frame+ "timelist==" +FrameTimeList[i]+ "count  :" + i);
-        //     FrameList.Add(frame);
-        // }
-        // currentFirstFrame = FrameList[0];
+        Debug.Log("FrameTimeList.Count- is."+FrameTimeList.Count+"..."+cameraNumber+"..--");
         for (int i = 0; i < FrameTimeList.Count; ++i) 
         {
             
             int frame = (int)System.Math.Round(FrameTimeList[i] / fps, System.MidpointRounding.AwayFromZero);
             FrameList.Add(frame);
         }
+        Debugger.List(FrameList);
         currentFirstFrame = FrameList[0];
 
+    }
+
+    private int NextRefleshFrame ()
+    {
+        return (int)((( (Turn-1) * timeLength) + (timeLength / 2)) / 30f); // きたねぇ
+
+    }
+
+    private int NextSetFrame ()
+    {
+        return  (int)(((Turn) * timeLength) / 30f);
+    }
+
+    private int TimeToFrame (int time)
+    {
+         return  (int)(time / 30f);
+    }
+
+    private int TimeToTurn (int time) 
+    {
+         return  (int)System.Math.Floor((double)(time / timeLength));
     }
 
     void OnGUI () 

@@ -22,7 +22,7 @@ public class BodySourceDBPlayerView : MonoBehaviour
     private int prevRotationCoef = 0;
 
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
-    private Vector3 CameraPivot = new Vector3(1, 0, 0);
+    public Vector3 CameraPivot = new Vector3(0, 25, -35);
     private Vector3 groundPosition;
 
     private FloorClipPlane _floorData;
