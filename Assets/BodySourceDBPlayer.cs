@@ -100,28 +100,19 @@ public class BodySourceDBPlayer : MonoBehaviour
         if (_dbDatas != null)
         {
             var _FrameCount = Clock.Counter;
-            
-                // var res =  FrameTimeList.FindIndex (x => System.Math.Abs(progressTIme - x) < 100 );
-                // Debug.Log(_FrameCount + "==cameranum===" + cameraNumber);
-                // Debugger.List(FrameList);
-                ThisNowFrameIndex =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
-                ThisNowFrame = ThisNowFrameIndex == -1 ? -1 : FrameList[ThisNowFrameIndex];
-                if ( ThisNowFrameIndex != -1 )
-                {
-                    // Debug.Log(res);
-                    // Debug.Log("what Frame=?" + _FrameCount + " timestamp=?" + _dbDatas[res].timestamp);
-                    _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[ThisNowFrameIndex].bodies);  
-                    ThisNowTime = (int)(_dbDatas[ThisNowFrameIndex].timestamp * 0.001f);
-                    _EData = _eBodies;
-                    FloorClipPlane = _dbDatas[ThisNowFrameIndex].floorClipPlane;
-                    CameraAngle = getCameraAngle(FloorClipPlane);
-                }
-
-                // _FrameCount += 1;
-            
+             
+            ThisNowFrameIndex =  FrameList.FindIndex (x => x.Equals(_FrameCount) );
+            ThisNowFrame = ThisNowFrameIndex == -1 ? -1 : FrameList[ThisNowFrameIndex];
+            if ( ThisNowFrameIndex != -1 )
+            {
+                _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_dbDatas[ThisNowFrameIndex].bodies);  
+                ThisNowTime = (int)(_dbDatas[ThisNowFrameIndex].timestamp * 0.001f);
+                _EData = _eBodies;
+                FloorClipPlane = _dbDatas[ThisNowFrameIndex].floorClipPlane;
+                CameraAngle = getCameraAngle(FloorClipPlane);
+            }
 
             QueingDB(_FrameCount);
-            // progressTIme += (int)(Time.deltaTime * 1000);
         }  
 
         if (Input.GetKeyDown(KeyCode.Space)) 
@@ -174,7 +165,6 @@ public class BodySourceDBPlayer : MonoBehaviour
          if (closingApp) return;
 
         _buffer = new List<DBFrame>();
-        // var res = _dbcollection.Find(Query.And(Query.EQ("camera", cameraNumber), Query.EQ("id", DataId))).SetSkip(skip).SetLimit(limit);
         var query = Query.And(
             Query.EQ("camera", cameraNumber), 
             Query.EQ("id", DataId), 
@@ -227,10 +217,6 @@ public class BodySourceDBPlayer : MonoBehaviour
             debugButton =  false;
         }
 
-        // if (
-        //     counter % ( (FrameList[FrameList.Count-1] - currentFirstFrame) / 2 + currentFirstFrame +  (cameraNumber*20) ) == 0 
-        //     && counter % FrameList[FrameList.Count-1] != 0
-        // ) 
         if ( counter % ( NextRefleshFrame() + (cameraNumber*30) ) == 0 
             && counter % NextSetFrame() != 0 ) 
         {
